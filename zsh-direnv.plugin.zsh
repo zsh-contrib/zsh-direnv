@@ -94,7 +94,9 @@ function _zsh_direnv__apply() {
   fi
 
   # Show what direnv had to say (e.g. "direnv: export +FOO") above the prompt.
-  [[ -n $msgs ]] && { zle -I; print -r -u2 -- $msgs }
+  # The redisplay re-anchors zle below the output, otherwise the reset-prompt
+  # below wipes it on multi-line prompts such as starship's.
+  [[ -n $msgs ]] && { zle -I; print -r -u2 -- $msgs; zle -R }
 
   # Redraw so a prompt that reads the env or the status picks up the change.
   if [[ -n $code || -n $msgs || $before != $ZSH_DIRENV_STATUS ]]; then

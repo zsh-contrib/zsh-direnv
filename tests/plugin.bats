@@ -130,6 +130,24 @@ EOF
   [[ "$output" == *"direnv: export +FOO"* ]]
 }
 
+@test "the prompt is redrawn only after direnv's output is printed" {
+  run zsh -c '
+    PATH="$STUB_BIN:$PATH"
+    zle() { echo "zle $*"; }
+    export STUB_CODE="export FOO=bar;export DIRENV_DIR=-/proj;"
+    export STUB_MSG="direnv: export +FOO"
+    source "$PLUGIN_DIR/zsh-direnv.plugin.zsh"
+    _zsh_direnv__precmd
+    _zsh_direnv__apply $_zsh_direnv__fd 2>&1
+  '
+  [[ "$status" -eq 0 ]]
+  # zle -F registration, -F unregistration, then: invalidate, print, redisplay, reset
+  [[ "${lines[2]}" == "zle -I" ]]
+  [[ "${lines[3]}" == "direnv: export +FOO" ]]
+  [[ "${lines[4]}" == "zle -R" ]]
+  [[ "${lines[5]}" == "zle reset-prompt" ]]
+}
+
 @test "a run that produced no result is rejected" {
   run zsh -c '
     PATH="$STUB_BIN:$PATH"

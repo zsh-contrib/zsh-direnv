@@ -11,8 +11,9 @@ fi
 #   loaded   an .envrc is active
 #   blocked  an .envrc exists but needs `direnv allow`
 #   error    direnv failed
-# Empty when no .envrc applies.
-typeset -g ZSH_DIRENV_STATUS=""
+# Empty when no .envrc applies. Exported so that prompts running as a separate
+# process, like starship, can read it.
+typeset -gx ZSH_DIRENV_STATUS=""
 
 # Status to fall back to when direnv reports nothing, i.e. the one that was
 # active before "loading" was flagged.

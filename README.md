@@ -85,6 +85,20 @@ RPROMPT='${ZSH_DIRENV_STATUS:+direnv:$ZSH_DIRENV_STATUS}'
 
 The prompt is redrawn when the environment or the status changes.
 
+### Starship
+
+The status is exported, so [starship](https://starship.rs/) can show it with the `env_var` module:
+
+```toml
+# ~/.config/starship.toml
+format = "${env_var.ZSH_DIRENV_STATUS}$character"
+
+[env_var.ZSH_DIRENV_STATUS]
+format = "[direnv:$env_value](yellow) "
+```
+
+Load `zsh-direnv` in the same `.zshrc` as `starship init zsh`; the order does not matter.
+
 ## Behavior
 
 Before each prompt the plugin:

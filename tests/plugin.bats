@@ -48,6 +48,17 @@ EOF
   [[ "$output" == "[]" ]]
 }
 
+@test "status is exported for prompts running in a child process" {
+  run zsh -c '
+    PATH="$STUB_BIN:$PATH"
+    source "$PLUGIN_DIR/zsh-direnv.plugin.zsh"
+    ZSH_DIRENV_STATUS=loaded
+    env | grep "^ZSH_DIRENV_STATUS="
+  '
+  [[ "$status" -eq 0 ]]
+  [[ "$output" == "ZSH_DIRENV_STATUS=loaded" ]]
+}
+
 @test "precmd hook is registered" {
   run zsh -c '
     PATH="$STUB_BIN:$PATH"

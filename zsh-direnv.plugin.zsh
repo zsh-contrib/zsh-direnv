@@ -57,6 +57,39 @@ function _zsh_direnv__cancel() {
   _zsh_direnv__fd=""
 }
 
+# PROMPT as it was before direnv's output was put in front of it, and the
+# resulting string, so that only our own change is ever undone.
+typeset -g _zsh_direnv__prompt=""
+typeset -g _zsh_direnv__prefixed=""
+
+# Put direnv's log output (e.g. "direnv: export +FOO") in front of the prompt,
+# so it reads like plain direnv: the output above a single prompt. Printing it
+# from the handler instead leaves the first prompt on screen above the output,
+# and a reset-prompt after that wipes it on multi-line prompts such as starship's.
+function _zsh_direnv__show() {
+  emulate -L zsh -o extendedglob
+
+  local line out
+  for line in ${(f)${1//$'\e'\[[0-9;]#m/}}; do
+    line=${line//\%/%%}
+    [[ -o promptsubst ]] && line=${line//(#m)[\\\$\`]/\\$MATCH}
+    out+=$line$'\n'
+  done
+
+  _zsh_direnv__prompt=$PROMPT
+  PROMPT=$out$PROMPT
+  _zsh_direnv__prefixed=$PROMPT
+}
+
+# Undo _zsh_direnv__show, unless something else changed PROMPT in the meantime.
+function _zsh_direnv__hide() {
+  emulate -L zsh
+
+  [[ -n $_zsh_direnv__prefixed && $PROMPT == "$_zsh_direnv__prefixed" ]] && PROMPT=$_zsh_direnv__prompt
+  _zsh_direnv__prompt=""
+  _zsh_direnv__prefixed=""
+}
+
 # Called by zle once the background run has written its result.
 function _zsh_direnv__apply() {
   emulate -L zsh
@@ -93,10 +126,7 @@ function _zsh_direnv__apply() {
     ZSH_DIRENV_STATUS=""
   fi
 
-  # Show what direnv had to say (e.g. "direnv: export +FOO") above the prompt.
-  # The redisplay re-anchors zle below the output, otherwise the reset-prompt
-  # below wipes it on multi-line prompts such as starship's.
-  [[ -n $msgs ]] && { zle -I; print -r -u2 -- $msgs; zle -R }
+  [[ -n $msgs ]] && _zsh_direnv__show $msgs
 
   # Redraw so a prompt that reads the env or the status picks up the change.
   if [[ -n $code || -n $msgs || $before != $ZSH_DIRENV_STATUS ]]; then
@@ -107,6 +137,8 @@ function _zsh_direnv__apply() {
 # called just before the prompt is printed
 function _zsh_direnv__precmd() {
   emulate -L zsh
+
+  _zsh_direnv__hide
 
   # Opt-out: users who set ZSH_DIRENV_DISABLE=1 get a complete no-op.
   [[ "${ZSH_DIRENV_DISABLE:-0}" == 1 ]] && return 0

@@ -116,36 +116,85 @@ EOF
   [[ "$output" == "unset []" ]]
 }
 
-@test "direnv log output is printed" {
-  run zsh -c '
-    PATH="$STUB_BIN:$PATH"
-    zle() { :; }
-    export STUB_CODE="export FOO=bar;export DIRENV_DIR=-/proj;"
-    export STUB_MSG="direnv: export +FOO"
-    source "$PLUGIN_DIR/zsh-direnv.plugin.zsh"
-    _zsh_direnv__precmd
-    _zsh_direnv__apply $_zsh_direnv__fd
-  '
-  [[ "$status" -eq 0 ]]
-  [[ "$output" == *"direnv: export +FOO"* ]]
-}
-
-@test "the prompt is redrawn only after direnv's output is printed" {
+@test "direnv output is put in front of the prompt and the prompt is redrawn" {
   run zsh -c '
     PATH="$STUB_BIN:$PATH"
     zle() { echo "zle $*"; }
     export STUB_CODE="export FOO=bar;export DIRENV_DIR=-/proj;"
     export STUB_MSG="direnv: export +FOO"
     source "$PLUGIN_DIR/zsh-direnv.plugin.zsh"
+    PROMPT="> "
     _zsh_direnv__precmd
-    _zsh_direnv__apply $_zsh_direnv__fd 2>&1
+    _zsh_direnv__apply $_zsh_direnv__fd
+    print -r -- "PROMPT=${PROMPT//$'"'"'\n'"'"'/|}"
   '
   [[ "$status" -eq 0 ]]
-  # zle -F registration, -F unregistration, then: invalidate, print, redisplay, reset
-  [[ "${lines[2]}" == "zle -I" ]]
-  [[ "${lines[3]}" == "direnv: export +FOO" ]]
-  [[ "${lines[4]}" == "zle -R" ]]
-  [[ "${lines[5]}" == "zle reset-prompt" ]]
+  [[ "${lines[-2]}" == "zle reset-prompt" ]]
+  [[ "${lines[-1]}" == "PROMPT=direnv: export +FOO|> " ]]
+}
+
+@test "the output is removed from the prompt before the next run" {
+  run zsh -c '
+    PATH="$STUB_BIN:$PATH"
+    zle() { :; }
+    export STUB_MSG="direnv: export +FOO"
+    source "$PLUGIN_DIR/zsh-direnv.plugin.zsh"
+    PROMPT="> "
+    _zsh_direnv__precmd
+    _zsh_direnv__apply $_zsh_direnv__fd
+    _zsh_direnv__precmd
+    print -r -- "[$PROMPT]"
+  '
+  [[ "$status" -eq 0 ]]
+  [[ "$output" == "[> ]" ]]
+}
+
+@test "a prompt changed by someone else is left alone" {
+  run zsh -c '
+    PATH="$STUB_BIN:$PATH"
+    zle() { :; }
+    export STUB_MSG="direnv: export +FOO"
+    source "$PLUGIN_DIR/zsh-direnv.plugin.zsh"
+    PROMPT="> "
+    _zsh_direnv__precmd
+    _zsh_direnv__apply $_zsh_direnv__fd
+    PROMPT="new> "
+    _zsh_direnv__precmd
+    print -r -- "[$PROMPT]"
+  '
+  [[ "$status" -eq 0 ]]
+  [[ "$output" == "[new> ]" ]]
+}
+
+@test "prompt escapes in direnv output are not interpreted" {
+  export STUB_MSG='direnv: 50% $HOME `date` back\slash'
+  run zsh -c '
+    PATH="$STUB_BIN:$PATH"
+    zle() { :; }
+    setopt promptsubst
+    source "$PLUGIN_DIR/zsh-direnv.plugin.zsh"
+    PROMPT="> "
+    _zsh_direnv__precmd
+    _zsh_direnv__apply $_zsh_direnv__fd
+    print -rP -- "${PROMPT%> }"
+  '
+  [[ "$status" -eq 0 ]]
+  [[ "$output" == 'direnv: 50% $HOME `date` back\slash' ]]
+}
+
+@test "colors are stripped from direnv output" {
+  run zsh -c '
+    PATH="$STUB_BIN:$PATH"
+    zle() { :; }
+    export STUB_MSG=$'"'"'\e[0mdirenv: loading\e[0m'"'"'
+    source "$PLUGIN_DIR/zsh-direnv.plugin.zsh"
+    PROMPT="> "
+    _zsh_direnv__precmd
+    _zsh_direnv__apply $_zsh_direnv__fd
+    print -r -- "${PROMPT//$'"'"'\n'"'"'/|}"
+  '
+  [[ "$status" -eq 0 ]]
+  [[ "$output" == "direnv: loading|> " ]]
 }
 
 @test "a run that produced no result is rejected" {

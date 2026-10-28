@@ -182,11 +182,11 @@ EOF
   [[ "$output" == 'direnv: 50% $HOME `date` back\slash' ]]
 }
 
-@test "colors are stripped from direnv output" {
+@test "colors of direnv output are kept as zero-width prompt escapes" {
+  export STUB_MSG=$'\e[90mdirenv: loading\e[0m'
   run zsh -c '
     PATH="$STUB_BIN:$PATH"
     zle() { :; }
-    export STUB_MSG=$'"'"'\e[0mdirenv: loading\e[0m'"'"'
     source "$PLUGIN_DIR/zsh-direnv.plugin.zsh"
     PROMPT="> "
     _zsh_direnv__precmd
@@ -194,7 +194,7 @@ EOF
     print -r -- "${PROMPT//$'"'"'\n'"'"'/|}"
   '
   [[ "$status" -eq 0 ]]
-  [[ "$output" == "direnv: loading|> " ]]
+  [[ "$output" == $'%{\e[90m%}direnv: loading%{\e[0m%}|> ' ]]
 }
 
 @test "a run that produced no result is rejected" {

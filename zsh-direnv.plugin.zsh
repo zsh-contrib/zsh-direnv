@@ -66,13 +66,15 @@ typeset -g _zsh_direnv__prefixed=""
 # so it reads like plain direnv: the output above a single prompt. Printing it
 # from the handler instead leaves the first prompt on screen above the output,
 # and a reset-prompt after that wipes it on multi-line prompts such as starship's.
+# The colors of DIRENV_LOG_FORMAT are kept, marked as zero-width for zsh.
 function _zsh_direnv__show() {
   emulate -L zsh -o extendedglob
 
-  local line out
-  for line in ${(f)${1//$'\e'\[[0-9;]#m/}}; do
+  local line out open='%{' close='%}'
+  for line in ${(f)1}; do
     line=${line//\%/%%}
     [[ -o promptsubst ]] && line=${line//(#m)[\\\$\`]/\\$MATCH}
+    line=${line//(#m)$'\e'\[[0-9;]#m/$open$MATCH$close}
     out+=$line$'\n'
   done
 

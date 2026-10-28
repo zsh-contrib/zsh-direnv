@@ -64,6 +64,16 @@ direnv's own logging settings apply. For example, to hide the `direnv: export +F
 export DIRENV_LOG_FORMAT=""
 ```
 
+### Style direnv's output
+
+The colors of `DIRENV_LOG_FORMAT` are kept, so the output can be styled like the rest of your shell, for example with [gum](https://github.com/charmbracelet/gum):
+
+```zsh
+export DIRENV_LOG_FORMAT="$(CLICOLOR_FORCE=1 gum style --foreground 8 'direnv: %s')"
+```
+
+`CLICOLOR_FORCE=1` makes gum emit its colors even though the output is captured by `$(...)`.
+
 ### Prompt
 
 `$ZSH_DIRENV_STATUS` holds the state of the last direnv run:

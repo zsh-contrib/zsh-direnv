@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.1](https://github.com/zsh-contrib/zsh-direnv/compare/v1.0.0...v1.0.1) (2026-11-07)
+
+
+### Bug Fixes
+
+* **ci:** merge with the App token so main gets its CI run ([#4](https://github.com/zsh-contrib/zsh-direnv/issues/4)) ([276611a](https://github.com/zsh-contrib/zsh-direnv/commit/276611a64adff17c4d3459912aa8eaea8ec19af8))
+
 ## 1.0.0 (2026-10-28)
 
 

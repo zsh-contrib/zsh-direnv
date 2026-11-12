@@ -56,6 +56,14 @@ Set `ZSH_DIRENV_DISABLE=1` to turn the plugin into a complete no-op:
 export ZSH_DIRENV_DISABLE=1
 ```
 
+### Synchronous mode
+
+Set `ZSH_DIRENV_ASYNC=0` to evaluate `direnv export` inline before the prompt, like direnv's own hook. The prompt waits for the `.envrc`, but a command you run right after `cd` always sees its environment:
+
+```zsh
+export ZSH_DIRENV_ASYNC=0
+```
+
 ### Silence direnv
 
 direnv's own logging settings apply. For example, to hide the `direnv: export +FOO` lines:
@@ -106,6 +114,8 @@ format = "${env_var.ZSH_DIRENV_STATUS}$character"
 [env_var.ZSH_DIRENV_STATUS]
 format = "[direnv:$env_value](yellow) "
 ```
+
+starship's built-in `[direnv]` module does not show this status, because it only reports direnv's own `loaded`/`allowed` state and knows nothing about `loading`. Remove it from `format` (or set `disabled = true`) and use `env_var` instead.
 
 Load `zsh-direnv` in the same `.zshrc` as `starship init zsh`; the order does not matter.
 

@@ -153,6 +153,17 @@ function _zsh_direnv__precmd() {
   [[ $ZSH_DIRENV_STATUS == loading ]] || _zsh_direnv__status=$ZSH_DIRENV_STATUS
   dir=$(_zsh_direnv__envrc_dir) && [[ $DIRENV_DIR != -${dir:A} ]] && ZSH_DIRENV_STATUS=loading
 
+  # Opt-out of the background run: evaluate inline, like direnv's own hook.
+  if [[ "${ZSH_DIRENV_ASYNC:-1}" == 0 ]]; then
+    local code
+    code=$(direnv export zsh) || ZSH_DIRENV_STATUS=error
+    [[ -n $code ]] && eval "$code"
+    if [[ $ZSH_DIRENV_STATUS != error ]]; then
+      [[ -n $DIRENV_DIR ]] && ZSH_DIRENV_STATUS=loaded || ZSH_DIRENV_STATUS=""
+    fi
+    return 0
+  fi
+
   exec {_zsh_direnv__fd}< <(_zsh_direnv__run)
   zle -F $_zsh_direnv__fd _zsh_direnv__apply
 }

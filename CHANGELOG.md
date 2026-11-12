@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.1.0](https://github.com/zsh-contrib/zsh-direnv/compare/v1.0.0...v1.1.0) (2026-11-12)
+
+
+### Features
+
+* add ZSH_DIRENV_ASYNC=0 to run direnv synchronously ([#7](https://github.com/zsh-contrib/zsh-direnv/issues/7)) ([3eab8c6](https://github.com/zsh-contrib/zsh-direnv/commit/3eab8c6a41474f17876bcf299444205429ab9ddb))
+
+
+### Bug Fixes
+
+* **ci:** merge with the App token so main gets its CI run ([#4](https://github.com/zsh-contrib/zsh-direnv/issues/4)) ([276611a](https://github.com/zsh-contrib/zsh-direnv/commit/276611a64adff17c4d3459912aa8eaea8ec19af8))
+
 ## 1.0.0 (2026-10-28)
 
 
